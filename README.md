@@ -11,7 +11,7 @@
 
 How to install:
 
-1. Install .zip file to PC from Releases ->
+1. Install cura-bridge-v1.1.1.zip file to PC from Releases ->
 
 2. Open Blender -> goto Edit -> Preferences -> Top right Install from Disk
 
