@@ -5,7 +5,7 @@
 > [!Note]
 > First time starting Cura may take some time
 > 
-> Tested for Blender version 4.2-4.4
+> Tested for Blender version 4.2 - 4.4
 
 ---
 
