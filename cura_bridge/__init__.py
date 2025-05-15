@@ -45,7 +45,7 @@ class CuraBridgePreferences(bpy.types.AddonPreferences):
     tab_name: bpy.props.StringProperty(
         name        = "Sidebar Tab Name",
         description = "Name of the Sidebar tab that hosts Cura Bridge panel.",
-        default     = "3D Print"
+        default     = "Cura"
     )
 
     def draw(self, _):
