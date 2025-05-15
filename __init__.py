@@ -19,39 +19,57 @@
 bl_info = {
     "name": "Cura Bridge",
     "author": "Synopsik",
-    "version": (1, 1, 0),
+    "version": (1, 1, 1),
     "blender": (4, 2, 0),
     "location": "View3D ▸ Sidebar ▸ Cura",
     "description": "Export selected mesh(es) to STL and open in UltiMaker Cura",
     "category": "3D View",
 }
 
-# -----------------------------------------------------------------------------#
-#  Preferences                                                                 #
-# -----------------------------------------------------------------------------#
 import bpy, os, platform, subprocess, shutil, time
 from datetime import datetime
 
+# -----------------------------------------------------------------------------#
+#  Preferences                                                                 #
+# -----------------------------------------------------------------------------#
 class CuraBridgePreferences(bpy.types.AddonPreferences):
     bl_idname = __name__
 
+    def _update_tab(self, ctx):
+        bpy.utils.unregister_class(CURA_PT_panel)
+        CURA_PT_panel.bl_category = self.tab_name
+        bpy.utils.register_class(CURA_PT_panel)
+
+
+
     cura_path: bpy.props.StringProperty(
-        name        = "Cura Executable",
-        subtype     = 'FILE_PATH',
-        description = "Optional path to Cura executable / AppImage / .exe. "
-                      "Leave blank for auto-detect.",
-        default     = ""
+        name="Cura Executable",
+        subtype='FILE_PATH',
+        description="Locations:\n\n"
+                    "Windows: C:\\Program Files\\UltiMaker Cura\\UltiMaker-Cura.exe\n"
+                    "Linux: /usr/bin/cura or ~/.local/bin/cura\n"
+                    "Flatpak: Leave blank\n"
+                    "macOS: /Applications/UltiMaker Cura.app/Contents/MacOS/UltiMaker Cura",
+        default=""
     )
     tab_name: bpy.props.StringProperty(
-        name        = "Sidebar Tab Name",
-        description = "Name of the Sidebar tab that hosts Cura Bridge panel.",
-        default     = "Cura"
+        name        = "N-Panel Tab Name",
+        description = "Name of the N-Panel tab that hosts Cura Bridge",
+        default     = "Cura",
+        update      = _update_tab
+    )
+    export_dir: bpy.props.StringProperty(
+        name        = "Export Directory",
+        subtype     = 'DIR_PATH',
+        description = "Directory where STLs are exported to",
+        default     = ""
     )
 
     def draw(self, _):
         l = self.layout
         l.prop(self, "tab_name")
         l.prop(self, "cura_path")
+        l.prop(self, "export_dir")
 
 # -----------------------------------------------------------------------------#
 #  Scene-level export settings                                                 #
@@ -96,33 +114,32 @@ class CuraExportProps(bpy.types.PropertyGroup):
 # -----------------------------------------------------------------------------#
 #  Export directory utilities                                                  #
 # -----------------------------------------------------------------------------#
-HOME        = os.path.expanduser("~")
-EXPORT_DIR  = os.path.join(HOME, "Downloads", "CuraBridge")
+HOME                = os.path.expanduser("~")
+DEFAULT_EXPORT_DIR  = os.path.join(HOME, "Downloads", "CuraBridge")
 
-def _wipe_export_dir() -> None:
+def _chosen_dir() -> str:
+    prefs = bpy.context.preferences.addons[__name__].preferences
+    if prefs.export_dir.strip():
+        return os.path.abspath(os.path.expanduser(prefs.export_dir.strip()))
+    return DEFAULT_EXPORT_DIR
+
+def _wipe_export_dir(path: str) -> None:
     # Remove every file + the folder (ignore errors)
-    if os.path.isdir(EXPORT_DIR):
-        for f in os.listdir(EXPORT_DIR):
-            try:
-                os.remove(os.path.join(EXPORT_DIR, f))
-            except OSError:
-                pass
-        try:
-            os.rmdir(EXPORT_DIR)
-        except OSError:
-            pass
+    if os.path.isdir(path):
+        shutil.rmtree(path, ignore_errors=True)
 
-def _ensure_export_dir() -> None:
-    os.makedirs(EXPORT_DIR, exist_ok=True)
+def _ensure_export_dir(path: str) -> None:
+    os.makedirs(path, exist_ok=True)
 
 def _make_stl_path(obj) -> str:
-    _ensure_export_dir()
+    directory = _chosen_dir()
+    _ensure_export_dir(directory)
     if bpy.data.filepath:
         base = os.path.splitext(os.path.basename(bpy.data.filepath))[0]
-        return os.path.join(EXPORT_DIR, f"{base}.stl")
+        return os.path.join(directory, f"{base}.stl")
     safe = bpy.path.clean_name(obj.name)
     ts   = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return os.path.join(EXPORT_DIR, f"{safe}_{ts}.stl")
+    return os.path.join(directory, f"{safe}_{ts}.stl")
 
 # -----------------------------------------------------------------------------#
 #  Operator – export & launch Cura                                             #
@@ -150,7 +167,8 @@ class CURA_OT_send(bpy.types.Operator):
             return False
 
     def execute(self, ctx):
-        _wipe_export_dir()  # clean on export
+
+        _wipe_export_dir(_chosen_dir())  # clean on export
 
         if not any(o.type == 'MESH' for o in ctx.selected_objects):
             self.report({'ERROR'}, "Select a mesh object to export.")
@@ -228,28 +246,58 @@ class CURA_PT_panel(bpy.types.Panel):
             layout.prop(p, prop)
         layout.operator(CURA_OT_send.bl_idname, icon='EXPORT')
 
+
+
+
+
 # -----------------------------------------------------------------------------#
 #  Register / Unregister                                                       #
 # -----------------------------------------------------------------------------#
 classes = (CuraBridgePreferences, CuraExportProps,
            CURA_OT_send, CURA_PT_panel)
 
+def _apply_tab():
+    try:
+        prefs = bpy.context.preferences.addons[__name__].preferences
+        bpy.utils.unregister_class(CURA_PT_panel)
+        CURA_PT_panel.bl_category = prefs.tab_name
+        print("[CuraBridge] _apply_tab(): applied", prefs.tab_name)
+    except Exception as e:
+        print("[CuraBridge] _apply_tab() error:", e)
+
+    try:
+        bpy.utils.register_class(CURA_PT_panel)
+    except RuntimeError as e:
+        print("[CuraBridge] _apply_tab(): register failed:", e)
+
+
 def register():
-    _wipe_export_dir() # clean on start
-    _ensure_export_dir()
     for c in classes:
         bpy.utils.register_class(c)
     bpy.types.Scene.cura_export = bpy.props.PointerProperty(type=CuraExportProps)
-    prefs = bpy.context.preferences.addons.get(__name__)
-    if prefs:
-        CURA_PT_panel.bl_category = prefs.preferences.tab_name
-    print("[CuraBridge] registered v1.5.0 – export dir cleaned.")
+    print("[CuraBridge] register(): calling _apply_tab()")
+    _apply_tab()
+    try:
+        bpy.app.handlers.load_post.append(_apply_tab)
+        print("[CuraBridge] register(): appended load_post handler")
+    except Exception as e:
+        print("[CuraBridge] register(): failed to append handler:", e)
+
+    _wipe_export_dir(_chosen_dir()) # clean on start
+    _ensure_export_dir(_chosen_dir())
+    print("[CuraBridge] registered – export dir cleaned.")
 
 def unregister():
+    try:
+        bpy.app.handlers.load_post.remove(_apply_tab)
+        print("[CuraBridge] unregister(): removed load_post handler")
+    except Exception as e:
+        print("[CuraBridge] unregister(): failed to remove handler:", e)
     for c in reversed(classes):
         bpy.utils.unregister_class(c)
     del bpy.types.Scene.cura_export
-    _wipe_export_dir()
+
+    _wipe_export_dir(_chosen_dir())
     print("[CuraBridge] unregistered – export dir cleaned.")
 
 if __name__ == "__main__":
