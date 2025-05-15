@@ -1,4 +1,4 @@
-﻿# CuraBridge
+﻿# Cura Bridge
 
  An addon for Blender that allows you to select any model(s) and press a single button to load directly into Cura.
 
@@ -15,7 +15,7 @@ How to install:
 
 2. Open Blender -> goto Edit -> Preferences -> Top right Install from Disk
 
-3. Choose installed CuraBridgeV#.zip
+3. Choose downloaded cura-bridge-v#.zip
 
 ---
 
@@ -30,3 +30,14 @@ If using Flatpak, you will need to also install:
 and upgrade permissions for Blender
 
 `flatpak override --user --talk-name=org.freedesktop.Flatpak org.blender.Blender`
+
+---
+
+### Update V1.1.1 5/15/25
+
+Added a field for custom export path. Defaults to the Downloads folder.
+
+> [!Note]
+> Flatpak users need to provide additional permissions for custom folders outside Cura's environment. 
+> 
+> ex. `flatpak override --user --filesystem=/tmp com.ultimaker.cura`
