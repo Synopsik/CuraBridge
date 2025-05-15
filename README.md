@@ -19,7 +19,7 @@ How to install:
 
 ---
 
-Update V1.1 5/14/25
+### Update V1.1 5/14/25
 
 Now with cross-compatibility, including Flatpak support for Blender and Cura.
 
