@@ -1,6 +1,6 @@
 ﻿# CuraBridge
 
- A basic addon for Blender that allows you to select a model or models and press a single button that loads those models directly into Cura
+ An addon for Blender that allows you to select any model(s) and press a single button to load directly into Cura.
 
 > [!Note]
 > First time starting Cura may take some time
