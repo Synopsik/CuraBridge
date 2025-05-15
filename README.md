@@ -16,3 +16,17 @@ How to install:
 2. Open Blender -> goto Edit -> Preferences -> Top right Install from Disk
 
 3. Choose installed CuraBridgeV#.zip
+
+---
+
+Update V1.1 5/14/25
+
+Now with cross-compatibility, including Flatpak support for Blender and Cura.
+
+If using Flatpak, you will need to also install:
+
+`flatpak-spawn`
+
+and upgrade permissions for Blender
+
+`flatpak override --user --talk-name=org.freedesktop.Flatpak org.blender.Blender`
