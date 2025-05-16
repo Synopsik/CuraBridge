@@ -21,7 +21,12 @@ How to install:
 
 ### Update V1.1 5/14/25
 
-Now with cross-compatibility, including Flatpak support.
+* Support for all platforms including Flatpak for Linux (see additional instructions)
+
+* Custom N-Panel name
+
+* Additional export options
+
 
 If using Flatpak, you will need to also install:
 
@@ -35,7 +40,7 @@ and upgrade permissions for Blender
 
 ### Update V1.1.1 5/15/25
 
-Added a field for custom export path. Defaults to the Downloads folder.
+* Added a field for custom temporary export path. Defaults to the Downloads folder.
 
 > [!Note]
 > Flatpak users need to provide additional permissions for custom folders outside Cura's environment. 
