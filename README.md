@@ -27,14 +27,14 @@ How to install:
 
 * Additional export options
 
-
-If using Flatpak, you will need to also install:
-
-`flatpak-spawn`
-
-and upgrade permissions for Blender
-
-`flatpak override --user --talk-name=org.freedesktop.Flatpak org.blender.Blender`
+> [!Note]
+> If using Flatpak, you will need to also install:
+>
+> `flatpak-spawn`
+>
+> and upgrade permissions for Blender
+>
+> `flatpak override --user --talk-name=org.freedesktop.Flatpak org.blender.Blender`
 
 ---
 
